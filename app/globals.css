@@ -20,6 +20,10 @@
   --code-bg: #020617;
   --card-bg: #0f172a;
 }
+.animate-in {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
 
 /* Flip card helpers */
 .perspective {
