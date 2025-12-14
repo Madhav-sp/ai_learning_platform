@@ -10,6 +10,7 @@ const groq = new Groq({
 export async function POST(req) {
   try {
     await connectDB();
+
     const {
       userId,
       title,
@@ -24,19 +25,32 @@ export async function POST(req) {
       return NextResponse.json({ error: "User ID missing" }, { status: 400 });
     }
 
-    const prompt = `
-You are an expert course creator AI.
+    /* =========================
+       AI PROMPT
+    ========================= */
+ const prompt = `
+You are an expert computer science instructor and curriculum designer.
 
-Generate a COMPLETE course in VALID JSON ONLY.
-NO markdown. NO explanations.
+Your task is to generate a HIGH-QUALITY, LEARNING-ORIENTED programming course
+similar to GeeksforGeeks, W3Schools, or university lecture notes.
 
-Course Title: ${title}
+STRICT RULES (VERY IMPORTANT):
+1. Each chapter MUST contain 4 to 6 topics.
+2. Each topic MUST be detailed and beginner-friendly.
+3. Each topic MUST have multiple sections.
+4. Content must be EXPLANATORY, not short notes.
+5. Avoid one-line explanations.
+6. Teach concepts step-by-step.
+
+Course Details:
+Title: ${title}
 Description: ${description}
 Difficulty: ${difficulty}
 Category: ${category}
 Number of Chapters: ${chaptersCount}
 
-FORMAT:
+JSON FORMAT (NO MARKDOWN, NO EXTRA TEXT):
+
 {
   "chapters": [
     {
@@ -45,19 +59,47 @@ FORMAT:
       "topics": [
         {
           "title": "string",
-          "content": "200-300 words",
-          "videoUrls": ${
-            includeVideos ? '["youtube search 1", "youtube search 2"]' : "[]"
-          },
-          "flashcards": [
-            { "question": "string", "answer": "string" },
-            { "question": "string", "answer": "string" }
+
+          "content": [
+            { "type": "heading", "text": "Introduction" },
+            { "type": "text", "text": "Explain the concept in 4–6 sentences." },
+
+            { "type": "heading", "text": "Why This Concept Is Important" },
+            { "type": "list", "items": ["point 1", "point 2", "point 3"] },
+
+            { "type": "heading", "text": "Syntax and Explanation" },
+            { "type": "text", "text": "Explain syntax in detail." },
+
+            { "type": "heading", "text": "Example" },
+            {
+              "type": "code",
+              "language": "python",
+              "code": "Provide a clear example code."
+            },
+
+            { "type": "heading", "text": "Output" },
+            {
+              "type": "output",
+              "text": "Show expected output."
+            },
+
+            { "type": "heading", "text": "Key Takeaways" },
+            {
+              "type": "list",
+              "items": ["summary point 1", "summary point 2"]
+            }
           ],
+
+          "flashcards": [
+            { "question": "Concept-based question", "answer": "Clear answer" },
+            { "question": "Why question", "answer": "Explanation answer" }
+          ],
+
           "quiz": [
             {
-              "question": "string",
+              "question": "Conceptual MCQ question",
               "options": ["A", "B", "C", "D"],
-              "answer": "A"
+              "correctAnswer": "A"
             }
           ]
         }
@@ -67,10 +109,11 @@ FORMAT:
 }
 `;
 
+
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.6,
+      temperature: 0.5,
     });
 
     const raw = completion.choices?.[0]?.message?.content ?? "";
@@ -79,9 +122,12 @@ FORMAT:
     let aiData;
     try {
       aiData = JSON.parse(cleaned);
-    } catch {
+    } catch (error) {
       return NextResponse.json(
-        { error: "AI returned invalid JSON", raw: cleaned.slice(0, 500) },
+        {
+          error: "AI returned invalid JSON",
+          raw: cleaned.slice(0, 600),
+        },
         { status: 500 }
       );
     }
@@ -93,6 +139,9 @@ FORMAT:
       );
     }
 
+    /* =========================
+       SAVE COURSE
+    ========================= */
     const course = await Course.create({
       userId,
       title,
@@ -101,7 +150,6 @@ FORMAT:
       includeVideos,
       category,
       chapters: aiData.chapters,
-      createdAt: new Date(),
     });
 
     return NextResponse.json(
@@ -111,7 +159,10 @@ FORMAT:
   } catch (err) {
     console.error(err);
     return NextResponse.json(
-      { error: "Failed to generate course", details: err.message },
+      {
+        error: "Failed to generate course",
+        details: err.message,
+      },
       { status: 500 }
     );
   }

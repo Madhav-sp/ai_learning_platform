@@ -1,4 +1,57 @@
 @import "tailwindcss";
+:root {
+  --bg: #ffffff;
+  --bg-secondary: #f9fafb;
+  --text: #111827;
+  --text-muted: #4b5563;
+  --border: #e5e7eb;
+  --accent: #16a34a;
+  --code-bg: #0f172a;
+  --card-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg-secondary: #0a0a0a;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --border: #1f2933;
+  --accent: #22c55e;
+  --code-bg: #020617;
+  --card-bg: #0f172a;
+}
+
+/* Flip card helpers */
+.perspective {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+.perspective {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
 
 :root {
   --background: #ffffff;
