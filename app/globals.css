@@ -1,4 +1,54 @@
 @import "tailwindcss";
+
+.perspective {
+  perspective: 1200px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+:root {
+  --bg: #0b0b0b;
+  --bg-secondary: #121212;
+  --bg-card: #151515;
+
+  --text: #f5f5f5;
+  --text-muted: #9ca3af;
+
+  --accent: #f97316;
+  /* ORANGE */
+  --accent-soft: rgba(249, 115, 22, 0.15);
+
+  --border: #27272a;
+  --glass: rgba(255, 255, 255, 0.04);
+}
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.6s ease-out forwards;
+}
 :root {
   --bg: #ffffff;
   --bg-secondary: #f9fafb;

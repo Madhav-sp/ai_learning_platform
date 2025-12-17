@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function CourseRoadmap({ course, onSelectChapter }) {
   return (
-    <div className="relative max-w-5xl mx-auto px-4 py-16">
-      {/* Vertical line (desktop only) */}
-      <div className="hidden md:block absolute left-1/2 top-0 h-full w-[3px] bg-gradient-to-b from-purple-400 to-purple-600 -translate-x-1/2" />
+    <div className="relative max-w-5xl mx-auto px-6 py-20">
+      {/* Timeline spine */}
+      <div className="absolute left-1/2 top-0 h-full w-px bg-white/10 -translate-x-1/2 hidden md:block" />
 
-      <div className="space-y-20">
+      <div className="space-y-24">
         {course.chapters.map((chapter, index) => (
           <RoadmapItem
             key={index}
@@ -22,10 +22,13 @@ export default function CourseRoadmap({ course, onSelectChapter }) {
   );
 }
 
-/* ================= ROADMAP ITEM ================= */
+/* ================================================= */
+/* ================= ROADMAP ITEM ================== */
+/* ================================================= */
 
 function RoadmapItem({ chapter, index, onSelect }) {
   const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
@@ -34,7 +37,7 @@ function RoadmapItem({ chapter, index, onSelect }) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          el.classList.add("animate-in");
+          setVisible(true);
         }
       },
       { threshold: 0.3 }
@@ -49,13 +52,21 @@ function RoadmapItem({ chapter, index, onSelect }) {
   return (
     <div
       ref={ref}
-      className={`opacity-0 translate-y-10 transition-all duration-700
-        md:flex md:items-center
-        ${isLeft ? "md:flex-row" : "md:flex-row-reverse"}`}
+      className={`relative md:flex items-center ${
+        isLeft ? "md:flex-row" : "md:flex-row-reverse"
+      }`}
     >
-      {/* Step circle */}
+      {/* Step Indicator */}
       <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 z-10">
-        <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center font-semibold shadow-lg">
+        <div
+          className={`h-12 w-12 rounded-full border flex items-center justify-center
+            text-sm font-semibold transition-all duration-700
+            ${
+              visible
+                ? "bg-orange-500 text-black border-orange-500 scale-100"
+                : "bg-[#0f0f12] text-gray-400 border-white/10 scale-90"
+            }`}
+        >
           {index + 1}
         </div>
       </div>
@@ -63,25 +74,37 @@ function RoadmapItem({ chapter, index, onSelect }) {
       {/* Card */}
       <div
         onClick={onSelect}
-        className="cursor-pointer w-full md:w-[420px] rounded-2xl p-6 shadow-xl
-                   transition-transform duration-300 hover:scale-[1.03]
-                   bg-gradient-to-br from-purple-600 to-indigo-600 text-white"
+        className={`
+          w-full md:w-[420px]
+          bg-[#111113] border border-white/5 rounded-2xl p-6
+          cursor-pointer transition-all duration-500
+          ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}
+          hover:border-orange-500/30 hover:shadow-[0_10px_30px_rgba(0,0,0,0.4)]
+        `}
       >
-        <div className="text-sm opacity-80">Chapter {index + 1}</div>
-
-        <h3 className="text-xl font-semibold mt-1">{chapter.chapterTitle}</h3>
-
-        <div className="mt-4 flex flex-wrap gap-3 text-sm opacity-90">
-          <span className="bg-white/20 px-3 py-1 rounded-full">
-            ⏱ {chapter.duration}
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs uppercase tracking-widest text-gray-500">
+            Chapter {index + 1}
           </span>
-          <span className="bg-white/20 px-3 py-1 rounded-full">
-            📚 {chapter.topics.length} Topics
-          </span>
+          <span className="text-xs text-gray-500">{chapter.duration}</span>
         </div>
 
-        <div className="mt-5 text-sm font-medium underline">
-          Start Chapter →
+        {/* Title */}
+        <h3 className="text-lg font-medium text-gray-100 leading-snug">
+          {chapter.chapterTitle}
+        </h3>
+
+        {/* Meta */}
+        <div className="mt-4 flex gap-4 text-sm text-gray-400">
+          <span>{chapter.topics.length} Topics</span>
+          <span>•</span>
+          <span>Structured learning</span>
+        </div>
+
+        {/* CTA */}
+        <div className="mt-6 text-sm font-medium text-orange-400">
+          Continue →
         </div>
       </div>
     </div>

@@ -8,123 +8,111 @@ import CourseRoadmap from "../../components/CourseRoadmap";
 /* ================================================= */
 
 export default function CourseUI({ course }) {
-  const [theme, setTheme] = useState("dark");
-  // const [view, setView] = useState("roadmap");
-  // roadmap | content | flashcards | quiz
-
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [activeTopicIndex, setActiveTopicIndex] = useState(0);
-  const [view, setView] = useState("content"); // content | flashcards | quiz
+  const [view, setView] = useState("content"); // content | flashcards | quiz | roadmap
 
   const chapter = course.chapters[activeChapterIndex];
   const topic = chapter.topics[activeTopicIndex];
 
   return (
-    <div
-      data-theme={theme}
-      className="flex min-h-screen"
-      style={{ background: "var(--bg)", color: "var(--text)" }}
-    >
+    <div className="flex min-h-screen bg-[#0b0b0c] text-gray-300">
       {/* ================= SIDEBAR ================= */}
-      <aside
-        className="w-80 p-4 border-r"
-        style={{
-          background: "var(--bg-secondary)",
-          borderColor: "var(--border)",
-        }}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-semibold text-lg">Course</h2>
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="text-sm px-3 py-1 rounded border"
-            style={{ borderColor: "var(--border)" }}
-          >
-            {theme === "dark" ? "☀ Light" : "🌙 Dark"}
-          </button>
+      <aside className="w-80 bg-[#0e0e10] border-r border-white/5 px-5 py-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="text-sm uppercase tracking-widest text-gray-400">
+            Course
+          </h2>
+          <p className="text-lg font-medium text-gray-200 mt-1">
+            {course.title}
+          </p>
         </div>
 
-        {course.chapters.map((ch, ci) => (
-          <div key={ci} className="mb-3">
-            <div
-              onClick={() => {
-                setActiveChapterIndex(ci);
-                setActiveTopicIndex(0);
-                setView("content");
-              }}
-              className="cursor-pointer font-medium"
-              style={{
-                color:
+        {/* Chapters */}
+        <div className="space-y-4">
+          {course.chapters.map((ch, ci) => (
+            <div key={ci}>
+              <button
+                onClick={() => {
+                  setActiveChapterIndex(ci);
+                  setActiveTopicIndex(0);
+                  setView("content");
+                }}
+                className={`w-full text-left text-sm font-medium transition-colors ${
                   ci === activeChapterIndex
-                    ? "var(--accent)"
-                    : "var(--text-muted)",
-              }}
-            >
-              {ci + 1}. {ch.chapterTitle}
-            </div>
+                    ? "text-orange-400"
+                    : "text-gray-400 hover:text-gray-200"
+                }`}
+              >
+                {ci + 1}. {ch.chapterTitle}
+              </button>
 
-            {ci === activeChapterIndex && (
-              <div className="ml-4 mt-1 space-y-1 text-sm">
-                {ch.topics.map((t, ti) => (
-                  <div
-                    key={ti}
-                    onClick={() => {
-                      setActiveTopicIndex(ti);
-                      setView("content");
-                    }}
-                    className="cursor-pointer"
-                    style={{
-                      color:
+              {ci === activeChapterIndex && (
+                <div className="mt-2 ml-4 space-y-1">
+                  {ch.topics.map((t, ti) => (
+                    <button
+                      key={ti}
+                      onClick={() => {
+                        setActiveTopicIndex(ti);
+                        setView("content");
+                      }}
+                      className={`block w-full text-left text-sm transition-colors ${
                         ti === activeTopicIndex
-                          ? "var(--accent)"
-                          : "var(--text-muted)",
-                    }}
-                  >
-                    • {t.title}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+                          ? "text-gray-200"
+                          : "text-gray-500 hover:text-gray-300"
+                      }`}
+                    >
+                      {t.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-        <div className="mt-6 border-t pt-4 space-y-2">
-          <div
+        {/* Divider */}
+        <div className="my-6 border-t border-white/5" />
+
+        {/* Utilities */}
+        <div className="space-y-2 text-sm">
+          <button
             onClick={() => setView("roadmap")}
-            className="cursor-pointer font-medium"
+            className="block w-full text-left text-gray-400 hover:text-gray-200"
           >
-            🗺 Roadmap
-          </div>
-
-          <div onClick={() => setView("flashcards")} className="cursor-pointer">
-            📘 Flashcards
-          </div>
-          <div onClick={() => setView("quiz")} className="cursor-pointer">
-            📝 Quiz
-          </div>
+            Course Roadmap
+          </button>
+          <button
+            onClick={() => setView("flashcards")}
+            className="block w-full text-left text-gray-400 hover:text-gray-200"
+          >
+            Flashcards
+          </button>
+          <button
+            onClick={() => setView("quiz")}
+            className="block w-full text-left text-gray-400 hover:text-gray-200"
+          >
+            Quiz
+          </button>
         </div>
       </aside>
 
       {/* ================= MAIN ================= */}
-      <main className="flex-1 px-8 py-10">
-        {/* ===== ARTICLE VIEW ===== */}
+      <main className="flex-1 px-10 py-10">
         {view === "content" && <ArticleView topic={topic} />}
-
-        {/* ===== FLASHCARDS ===== */}
         {view === "flashcards" && (
           <FlashcardsSection
             flashcards={topic.flashcards}
             onExit={() => setView("content")}
           />
         )}
-
-        {/* ===== QUIZ ===== */}
         {view === "quiz" && <QuizView quiz={topic.quiz} />}
         {view === "roadmap" && (
           <CourseRoadmap
             course={course}
-            onSelectChapter={(chapterIndex) => {
-              setActiveChapterIndex(chapterIndex);
+            onSelectChapter={(i) => {
+              setActiveChapterIndex(i);
               setActiveTopicIndex(0);
               setView("content");
             }}
@@ -139,27 +127,30 @@ export default function CourseUI({ course }) {
 /* ================= ARTICLE VIEW ================== */
 /* ================================================= */
 
-// max-w-3xl space-y-6
 function ArticleView({ topic }) {
   return (
-    <div className="padded-article   mx-auto ">
-      <h1 className="text-3xl font-semibold">{topic.title}</h1>
+    <div className="max-w-3xl mx-auto space-y-6">
+      <h1 className="text-3xl font-semibold text-gray-100">{topic.title}</h1>
 
       {topic.content.map((b, i) => {
         switch (b.type) {
           case "heading":
             return (
-              <h2 key={i} className="text-2xl font-semibold mt-8 mb-3">
+              <h2 key={i} className="text-xl font-semibold text-gray-200 pt-6">
                 {b.text}
               </h2>
             );
 
           case "text":
-            return <p key={i}>{b.text}</p>;
+            return (
+              <p key={i} className="text-gray-400 leading-relaxed">
+                {b.text}
+              </p>
+            );
 
           case "list":
             return (
-              <ul key={i} className="list-disc ml-6 space-y-1">
+              <ul key={i} className="list-disc ml-6 space-y-1 text-gray-400">
                 {b.items.map((it, j) => (
                   <li key={j}>{it}</li>
                 ))}
@@ -173,14 +164,10 @@ function ArticleView({ topic }) {
             return (
               <div
                 key={i}
-                className="border-l-4 p-4 rounded"
-                style={{
-                  borderColor: "var(--accent)",
-                  background: "var(--bg-secondary)",
-                }}
+                className="border-l-2 pl-4 py-2 bg-[#111113]"
+                style={{ borderColor: "#f97316" }}
               >
-                <strong>Output:</strong>
-                <pre className="mt-2 text-sm">{b.text}</pre>
+                <pre className="text-sm text-gray-300">{b.text}</pre>
               </div>
             );
 
@@ -202,30 +189,19 @@ function CodeBlock({ code }) {
   const copy = async () => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    setTimeout(() => setCopied(false), 1200);
   };
 
   return (
     <div className="relative">
       <button
         onClick={copy}
-        className="absolute right-2 top-2 text-xs px-2 py-1 rounded border"
-        style={{
-          borderColor: "var(--border)",
-          background: "var(--bg-secondary)",
-        }}
+        className="absolute right-3 top-3 text-xs text-gray-400 hover:text-gray-200"
       >
-        {copied ? "Copied!" : "Copy"}
+        {copied ? "Copied" : "Copy"}
       </button>
 
-      <pre
-        className="p-4 rounded text-sm overflow-x-auto border"
-        style={{
-          background: "var(--code-bg)",
-          borderColor: "var(--border)",
-          color: "#e5e7eb",
-        }}
-      >
+      <pre className="bg-[#111113] border border-white/5 rounded-xl p-5 text-sm text-gray-200 overflow-x-auto">
         <code>{code}</code>
       </pre>
     </div>
@@ -236,105 +212,355 @@ function CodeBlock({ code }) {
 /* ================= QUIZ VIEW ===================== */
 /* ================================================= */
 
+// function QuizView({ quiz }) {
+//   const [answers, setAnswers] = useState({});
+//   const [submitted, setSubmitted] = useState(false);
+
+//   const score = quiz.reduce(
+//     (s, q, i) => (answers[i] === q.correctAnswer ? s + 1 : s),
+//     0
+//   );
+
+//   return (
+//     <div className="max-w-3xl mx-auto space-y-6">
+//       <h1 className="text-2xl font-semibold text-gray-100">Quiz</h1>
+
+//       {quiz.map((q, i) => (
+//         <div
+//           key={i}
+//           className="border border-white/5 bg-[#111113] rounded-xl p-5"
+//         >
+//           <p className="text-gray-200 mb-3">
+//             {i + 1}. {q.question}
+//           </p>
+
+//           {q.options.map((opt) => (
+//             <label key={opt} className="block text-sm text-gray-400">
+//               <input
+//                 type="radio"
+//                 name={`q-${i}`}
+//                 disabled={submitted}
+//                 onChange={() => setAnswers({ ...answers, [i]: opt })}
+//                 className="mr-2"
+//               />
+//               {opt}
+//             </label>
+//           ))}
+//         </div>
+//       ))}
+
+//       {!submitted ? (
+//         <button
+//           onClick={() => setSubmitted(true)}
+//           className="px-5 py-2 rounded-lg bg-orange-500 text-black text-sm font-medium"
+//         >
+//           Submit
+//         </button>
+//       ) : (
+//         <p className="text-gray-200">
+//           Score: {score} / {quiz.length}
+//         </p>
+//       )}
+//     </div>
+//   );
+// }
+
+
 function QuizView({ quiz }) {
+  const QUIZ_TIME_SECONDS = 5 * 60; // 5 minutes (change if needed)
+
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_SECONDS);
 
+  // score calculation
   const score = quiz.reduce(
     (s, q, i) => (answers[i] === q.correctAnswer ? s + 1 : s),
     0
   );
 
-  return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <h1 className="text-3xl font-semibold">Quiz</h1>
+  // timer logic
+  useEffect(() => {
+    if (!started || submitted) return;
 
-      {quiz.map((q, i) => (
-        <div
-          key={i}
-          className="border p-4 rounded"
-          style={{ borderColor: "var(--border)" }}
-        >
-          <p className="font-medium mb-2">
-            {i + 1}. {q.question}
+    if (timeLeft <= 0) {
+      setSubmitted(true);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeLeft((t) => t - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [started, submitted, timeLeft]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
+
+  /* ================= PRE-QUIZ SCREEN ================= */
+
+  if (!started) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="max-w-lg w-full bg-[#0f0f12] border border-white/5 rounded-3xl p-10 text-center">
+          <h1 className="text-2xl font-semibold text-gray-100 mb-3">
+            Ready for the Quiz?
+          </h1>
+          <p className="text-sm text-gray-500 mb-6">
+            You’ll have {QUIZ_TIME_SECONDS / 60} minutes to complete this quiz.
+            Once started, the timer cannot be paused.
           </p>
 
-          {q.options.map((opt) => (
-            <label key={opt} className="block">
-              <input
-                type="radio"
-                name={`q-${i}`}
-                disabled={submitted}
-                onChange={() => setAnswers({ ...answers, [i]: opt })}
-              />{" "}
-              {opt}
-            </label>
-          ))}
+          <button
+            onClick={() => setStarted(true)}
+            className="px-6 py-3 rounded-lg bg-orange-500 text-black text-sm font-medium"
+          >
+            Start Quiz
+          </button>
         </div>
-      ))}
+      </div>
+    );
+  }
 
-      {!submitted ? (
-        <button
-          onClick={() => setSubmitted(true)}
-          className="px-4 py-2 rounded text-white"
-          style={{ background: "var(--accent)" }}
-        >
-          Submit Quiz
-        </button>
-      ) : (
-        <div className="text-lg font-medium">
-          Score: {score} / {quiz.length}
+  /* ================= RESULT SCREEN ================= */
+
+  if (submitted) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <div className="max-w-lg w-full bg-[#0f0f12] border border-white/5 rounded-3xl p-10 text-center">
+          <h1 className="text-2xl font-semibold text-gray-100 mb-3">
+            Quiz Completed
+          </h1>
+          <p className="text-gray-400 mb-6">
+            Your Score
+          </p>
+
+          <div className="text-4xl font-semibold text-orange-400 mb-6">
+            {score} / {quiz.length}
+          </div>
+
+          <p className="text-sm text-gray-500">
+            Time taken: {formatTime(QUIZ_TIME_SECONDS - timeLeft)}
+          </p>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  /* ================= QUIZ SCREEN ================= */
+
+  return (
+    <div className="min-h-screen bg-[#0b0b0c] text-gray-300 px-10 py-8">
+      {/* Top Bar */}
+      <div className="max-w-5xl mx-auto flex items-center justify-between mb-8">
+        <h1 className="text-xl font-semibold text-gray-100">
+          Quiz
+        </h1>
+
+        <div className="flex items-center gap-4">
+          <div className="px-4 py-2 rounded-lg bg-[#111113] border border-white/5 text-sm">
+            ⏱ {formatTime(timeLeft)}
+          </div>
+
+          <button
+            onClick={() => setSubmitted(true)}
+            className="px-4 py-2 rounded-lg border border-white/10 text-sm hover:text-white"
+          >
+            Submit
+          </button>
+        </div>
+      </div>
+
+      {/* Questions */}
+      <div className="max-w-5xl mx-auto space-y-6">
+        {quiz.map((q, i) => (
+          <div
+            key={i}
+            className="bg-[#111113] border border-white/5 rounded-2xl p-6"
+          >
+            <p className="text-gray-200 mb-4">
+              {i + 1}. {q.question}
+            </p>
+
+            <div className="space-y-2">
+              {q.options.map((opt) => (
+                <label
+                  key={opt}
+                  className="flex items-center gap-3 text-sm text-gray-400 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name={`q-${i}`}
+                    checked={answers[i] === opt}
+                    onChange={() =>
+                      setAnswers({ ...answers, [i]: opt })
+                    }
+                    className="accent-orange-500"
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
+
 /* ================================================= */
-/* =============== FLASHCARDS (UNCHANGED) ========= */
+/* ================= FLASHCARDS ==================== */
 /* ================================================= */
 
-/* (Uses the same FlashcardsSection, FlashcardGrid,
-   FlashcardStudy, FlipCard from previous message)
-   → NO CHANGES REQUIRED THERE */
+// function FlashcardsSection({ flashcards, onExit }) {
+//   const [mode, setMode] = useState("grid");
+
+//   return (
+//     <>
+//       <div className="flex items-center justify-between mb-8">
+//         <div>
+//           <h1 className="text-2xl font-semibold text-gray-100">Flashcards</h1>
+//           <p className="text-sm text-gray-500">Active recall learning</p>
+//         </div>
+
+//         <div className="flex gap-3">
+//           <button
+//             onClick={() => setMode(mode === "grid" ? "study" : "grid")}
+//             className="px-4 py-2 rounded-lg border border-white/10 text-sm text-gray-300 hover:text-gray-100"
+//           >
+//             {mode === "grid" ? "Study mode" : "Grid view"}
+//           </button>
+
+//           <button
+//             onClick={onExit}
+//             className="px-4 py-2 rounded-lg border border-white/10 text-sm text-gray-300"
+//           >
+//             Exit
+//           </button>
+//         </div>
+//       </div>
+
+//       {mode === "grid" ? (
+//         <FlashcardGrid flashcards={flashcards} />
+//       ) : (
+//         <FlashcardStudy flashcards={flashcards} />
+//       )}
+//     </>
+//   );
+// }
+
+// /* ================= GRID MODE ================= */
+
+// function FlashcardGrid({ flashcards }) {
+//   return (
+//     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+//       {flashcards.map((f, i) => (
+//         <FlipCard key={i} index={i} front={f.question} back={f.answer} />
+//       ))}
+//     </div>
+//   );
+// }
+
+// /* ================= STUDY MODE ================= */
+
+// function FlashcardStudy({ flashcards }) {
+//   const [cards, setCards] = useState([...flashcards]);
+//   const [index, setIndex] = useState(0);
+//   const [flipped, setFlipped] = useState(false);
+
+//   const card = cards[index];
+
+//   const next = () => {
+//     setFlipped(false);
+//     setIndex((i) => Math.min(i + 1, cards.length - 1));
+//   };
+
+//   const prev = () => {
+//     setFlipped(false);
+//     setIndex((i) => Math.max(i - 1, 0));
+//   };
+
+//   return (
+//     <div className="flex flex-col items-center gap-6">
+//       <div className="text-sm text-gray-500">
+//         {index + 1} / {cards.length}
+//       </div>
+
+//       <div
+//         onClick={() => setFlipped(!flipped)}
+//         className="w-full max-w-md h-64 cursor-pointer"
+//       >
+//         <div className="bg-[#111113] border border-white/5 rounded-xl h-full flex items-center justify-center p-6">
+//           <p className="text-lg text-center text-gray-200">
+//             {flipped ? card.answer : card.question}
+//           </p>
+//         </div>
+//       </div>
+
+//       <div className="flex gap-4">
+//         <button
+//           onClick={prev}
+//           className="px-4 py-2 rounded-lg border border-white/10 text-sm"
+//         >
+//           Prev
+//         </button>
+//         <button
+//           onClick={next}
+//           className="px-4 py-2 rounded-lg bg-orange-500 text-black text-sm"
+//         >
+//           Next
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* ================= FLIP CARD ================= */
+
+// function FlipCard({ front, back, index }) {
+//   const [flipped, setFlipped] = useState(false);
+
+//   return (
+//     <div
+//       onClick={() => setFlipped(!flipped)}
+//       className="bg-[#111113] border border-white/5 rounded-xl p-5 cursor-pointer hover:border-orange-500/20 transition-colors"
+//     >
+//       <div className="text-xs text-gray-500 mb-2">Card {index + 1}</div>
+//       <div className="text-gray-200 text-center">{flipped ? back : front}</div>
+//     </div>
+//   );
+// }
+
 function FlashcardsSection({ flashcards, onExit }) {
-  const [mode, setMode] = useState("grid"); // grid | study
+  const [mode, setMode] = useState("grid");
 
   return (
     <>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-3xl font-semibold">Flashcards</h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            Learn using active recall
-          </p>
+          <h1 className="text-2xl font-semibold text-gray-100">Flashcards</h1>
+          <p className="text-sm text-gray-500">Active recall learning</p>
         </div>
 
         <div className="flex gap-3">
-          {mode === "grid" ? (
-            <button
-              onClick={() => setMode("study")}
-              className="px-4 py-2 rounded text-white"
-              style={{ background: "var(--accent)" }}
-            >
-              ▶ Study Mode
-            </button>
-          ) : (
-            <button
-              onClick={() => setMode("grid")}
-              className="px-4 py-2 rounded border"
-              style={{ borderColor: "var(--border)" }}
-            >
-              ⬅ Back to Grid
-            </button>
-          )}
+          <button
+            onClick={() => setMode(mode === "grid" ? "study" : "grid")}
+            className="px-4 py-2 rounded-lg border border-white/10 text-sm text-gray-300 hover:text-gray-100"
+          >
+            {mode === "grid" ? "Study mode" : "Grid view"}
+          </button>
 
           <button
             onClick={onExit}
-            className="px-4 py-2 rounded border"
-            style={{ borderColor: "var(--border)" }}
+            className="px-4 py-2 rounded-lg border border-white/10 text-sm text-gray-300"
           >
-            ✖ Exit
+            Exit
           </button>
         </div>
       </div>
@@ -347,94 +573,50 @@ function FlashcardsSection({ flashcards, onExit }) {
     </>
   );
 }
-
-/* ================= GRID MODE ================= */
-
 function FlashcardGrid({ flashcards }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
       {flashcards.map((f, i) => (
-        <FlipCard
-          key={i}
-          index={i}
-          front={f.question}
-          back={f.answer}
-        />
+        <FlipCard key={i} index={i} front={f.question} back={f.answer} />
       ))}
     </div>
   );
 }
-
-/* ================= STUDY MODE ================= */
-
 function FlashcardStudy({ flashcards }) {
-  const [cards, setCards] = useState(() =>
-    [...flashcards].sort(() => Math.random() - 0.5)
-  );
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
-  const card = cards[index];
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.code === "Space") {
-        e.preventDefault();
-        setFlipped((f) => !f);
-      }
-      if (e.code === "ArrowRight") next();
-      if (e.code === "ArrowLeft") prev();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [index]);
-
-  const next = () => {
-    setFlipped(false);
-    setIndex((i) => Math.min(i + 1, cards.length - 1));
-  };
-
-  const prev = () => {
-    setFlipped(false);
-    setIndex((i) => Math.max(i - 1, 0));
-  };
-
-  const again = () => {
-    setCards((prev) => [...prev, card]);
-    next();
-  };
+  const card = flashcards[index];
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <div className="text-sm text-[var(--text-muted)]">
-        {index + 1} / {cards.length}
+    <div className="flex flex-col items-center gap-8">
+      <div className="text-sm text-gray-500">
+        {index + 1} / {flashcards.length}
       </div>
 
-      <div className="w-full max-w-md perspective">
+      {/* Fixed-size flip card */}
+      <div
+        className="w-full max-w-xl h-[320px] perspective"
+        onClick={() => setFlipped((f) => !f)}
+      >
         <div
-          onClick={() => setFlipped(!flipped)}
-          className={`relative h-64 cursor-pointer transition-transform duration-500 transform-style-3d ${
+          className={`relative w-full h-full transition-transform duration-500 transform-style-3d cursor-pointer ${
             flipped ? "rotate-y-180" : ""
           }`}
         >
-          <div
-            className="absolute inset-0 rounded-xl border flex items-center justify-center p-6 backface-hidden shadow-lg"
-            style={{
-              background: "var(--card-bg)",
-              borderColor: "var(--border)",
-            }}
-          >
-            <p className="text-xl text-center">{card.question}</p>
+          {/* Front */}
+          <div className="absolute inset-0 backface-hidden rounded-2xl bg-[#111113] border border-white/10 flex items-center justify-center p-10">
+            <p className="text-xl text-center text-gray-200 leading-relaxed">
+              {card.question}
+            </p>
           </div>
 
+          {/* Back */}
           <div
-            className="absolute inset-0 rounded-xl flex items-center justify-center p-6 rotate-y-180 backface-hidden shadow-xl"
-            style={{
-              background: "linear-gradient(135deg, #22c55e, #16a34a)",
-              color: "#000",
-            }}
+            className="absolute inset-0 rotate-y-180 backface-hidden rounded-2xl 
+                          bg-orange-500/90 text-black flex items-center justify-center p-10"
           >
-            <p className="text-lg font-semibold text-center">
+            <p className="text-xl font-medium text-center leading-relaxed">
               {card.answer}
             </p>
           </div>
@@ -443,76 +625,65 @@ function FlashcardStudy({ flashcards }) {
 
       <div className="flex gap-4">
         <button
-          onClick={prev}
-          className="px-4 py-2 rounded border"
-          style={{ borderColor: "var(--border)" }}
+          onClick={() => {
+            setFlipped(false);
+            setIndex((i) => Math.max(i - 1, 0));
+          }}
+          className="px-5 py-2 rounded-lg border border-white/10 text-sm"
         >
-          ← Prev
+          Prev
         </button>
 
         <button
-          onClick={again}
-          className="px-4 py-2 rounded bg-red-600 text-white"
+          onClick={() => {
+            setFlipped(false);
+            setIndex((i) => Math.min(i + 1, flashcards.length - 1));
+          }}
+          className="px-5 py-2 rounded-lg bg-orange-500 text-black text-sm font-medium"
         >
-          Again
-        </button>
-
-        <button
-          onClick={next}
-          className="px-4 py-2 rounded bg-green-600 text-white"
-        >
-          Known
+          Next
         </button>
       </div>
 
-      <div className="text-xs text-[var(--text-muted)]">
-        Space = flip · ← → = navigate
-      </div>
+      <p className="text-xs text-gray-500">Click the card to flip</p>
     </div>
   );
 }
-
-/* ================= FLIP CARD ================= */
-
 function FlipCard({ front, back, index }) {
   const [flipped, setFlipped] = useState(false);
 
   return (
-    <div className="perspective">
+    <div
+      className="h-[260px] perspective cursor-pointer"
+      onClick={() => setFlipped((f) => !f)}
+    >
       <div
-        onClick={() => setFlipped(!flipped)}
-        className={`relative h-56 cursor-pointer transition-transform duration-500 transform-style-3d ${
+        className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${
           flipped ? "rotate-y-180" : ""
         }`}
       >
+        {/* Front */}
         <div
-          className="absolute inset-0 rounded-xl border flex flex-col justify-between p-5 backface-hidden shadow-lg"
-          style={{
-            background: "var(--card-bg)",
-            borderColor: "var(--border)",
-          }}
+          className="absolute inset-0 backface-hidden rounded-2xl 
+                        bg-[#111113] border border-white/5 p-6 flex flex-col justify-between"
         >
-          <div className="text-xs text-[var(--text-muted)]">
-            Card {index + 1}
+          <div className="text-xs text-gray-500">Card {index + 1}</div>
+
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-gray-200 text-center">{front}</p>
           </div>
-          <div className="text-lg font-medium text-center">
-            {front}
-          </div>
-          <div className="text-xs text-center text-[var(--text-muted)]">
+
+          <div className="text-xs text-gray-500 text-center">
             Click to reveal
           </div>
         </div>
 
+        {/* Back */}
         <div
-          className="absolute inset-0 rounded-xl flex items-center justify-center p-5 rotate-y-180 backface-hidden shadow-xl"
-          style={{
-            background: "linear-gradient(135deg, #22c55e, #16a34a)",
-            color: "#000",
-          }}
+          className="absolute inset-0 rotate-y-180 backface-hidden rounded-2xl 
+                        bg-orange-500/90 text-black p-6 flex items-center justify-center"
         >
-          <p className="text-lg font-semibold text-center">
-            {back}
-          </p>
+          <p className="text-lg font-medium text-center">{back}</p>
         </div>
       </div>
     </div>
