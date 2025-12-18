@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Home,
   BookOpen,
@@ -14,7 +14,7 @@ import {
   Play,
   Trophy,
 } from "lucide-react";
-import { useClerk, UserButton } from "@clerk/nextjs";
+import { useClerk, UserButton, useUser } from "@clerk/nextjs";
 import WeatherWidget from "../components/WeatherWidget";
 import OrangePlusButton from "../components/button";
 import { useRouter } from "next/navigation";
@@ -172,18 +172,160 @@ function TopBar() {
 
 /* ================= MAIN CONTENT ================= */
 
+// function MainContent() {
+//   const router = useRouter();
+
+//   const [courses, setCourses] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   const { user } = useUser();
+
+//   useEffect(() => {
+//     if (!user) return;
+
+//     fetch(`/api/course`)
+//       .then((res) => res.json())
+//       .then(setCourses)
+//       .then(() => setLoading(false))
+//   }, [user]);
+//   return (
+//     <main className="flex-1 overflow-y-auto p-8 relative">
+//       <div className="max-w-5xl mx-auto space-y-12">
+//         {/* METRICS (UNCHANGED) */}
+//         <section className="grid grid-cols-3 gap-6">
+//           {[
+//             { label: "Current Streak", value: "14", unit: "Days" },
+//             { label: "Focus Hours", value: "124.5", unit: "Hrs" },
+//             { label: "Completed", value: "12", unit: "Projects" },
+//           ].map((item, i) => (
+//             <div
+//               key={i}
+//               className="bg-[#111113] border border-white/5 rounded-2xl p-6"
+//             >
+//               <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+//                 {item.label}
+//               </p>
+//               <div className="flex items-end gap-2">
+//                 <span className="text-3xl font-medium text-gray-100">
+//                   {item.value}
+//                 </span>
+//                 <span className="text-sm text-gray-500">{item.unit}</span>
+//               </div>
+//             </div>
+//           ))}
+//         </section>
+
+//         {/* ACTIVE MODULES (REAL DATA) */}
+//         <section>
+//           <h2 className="text-xs uppercase tracking-widest text-gray-500 mb-6">
+//             Active Modules
+//           </h2>
+
+//           {/* LOADING STATE */}
+//           {loading && <p className="text-sm text-gray-500">Loading courses…</p>}
+
+//           {/* EMPTY STATE */}
+//           {!loading && courses.length === 0 && (
+//             <p className="text-sm text-gray-500">
+//               No courses yet. Create your first one.
+//             </p>
+//           )}
+
+//           {/* COURSES GRID */}
+//           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+//             {courses.map((course) => (
+//               <div
+//                 key={course._id}
+//                 className="bg-[#111113] border border-white/5 rounded-3xl p-8
+//                            hover:border-orange-500/20 transition-colors"
+//               >
+//                 <div className="flex justify-between mb-10">
+//                   <h3 className="text-xl font-medium text-gray-100 max-w-[220px]">
+//                     {course.title}
+//                   </h3>
+
+//                   <button
+//                     onClick={() => router.push(`/course/${course._id}`)}
+//                     className="w-11 h-11 rounded-full border border-white/10
+//                                flex items-center justify-center
+//                                hover:bg-orange-500 hover:text-black transition-colors"
+//                   >
+//                     <Play className="w-4 h-4 fill-current" />
+//                   </button>
+//                 </div>
+
+//                 {/* TEMP PROGRESS (can be replaced later) */}
+//                 <div>
+//                   <div className="flex justify-between text-xs text-gray-500 mb-2">
+//                     <span>Progress</span>
+//                     <span className="text-gray-300">—</span>
+//                   </div>
+
+//                   <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+//                     <div className="h-full bg-orange-500 w-[10%]" />
+//                   </div>
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+//         </section>
+//       </div>
+
+//       {/* FLOATING CREATE BUTTON */}
+//       <div className="fixed bottom-6 right-[calc(320px+24px)] z-50">
+//         <OrangePlusButton onClick={() => router.push("/create-course")} />
+//       </div>
+//     </main>
+//   );
+// }
 function MainContent() {
   const router = useRouter();
+  const { user } = useUser();
+
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    fetch("/api/course")
+      .then((res) => res.json())
+      .then((data) => {
+        setCourses(data || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [user]);
+
+  const visibleCourses = showAll ? courses : courses.slice(0, 2);
+
+  const difficultyStyle = (level) => {
+    switch (level?.toLowerCase()) {
+      case "beginner":
+        return "bg-green-500/10 text-green-400";
+      case "intermediate":
+        return "bg-yellow-500/10 text-yellow-400";
+      case "advanced":
+        return "bg-red-500/10 text-red-400";
+      default:
+        return "bg-gray-500/10 text-gray-400";
+    }
+  };
 
   return (
-    <main className="flex-1 overflow-y-auto p-8 relative">
+    <main className="flex-1 overflow-y-auto p-8 relative custom-scroll">
       <div className="max-w-5xl mx-auto space-y-12">
         {/* METRICS */}
         <section className="grid grid-cols-3 gap-6">
           {[
             { label: "Current Streak", value: "14", unit: "Days" },
             { label: "Focus Hours", value: "124.5", unit: "Hrs" },
-            { label: "Completed", value: "12", unit: "Projects" },
+            {
+              label: "Completed",
+              value: courses.length,
+              unit: "Courses",
+            },
           ].map((item, i) => (
             <div
               key={i}
@@ -202,42 +344,80 @@ function MainContent() {
           ))}
         </section>
 
-        {/* MODULES */}
+        {/* ACTIVE MODULES */}
         <section>
-          <h2 className="text-xs uppercase tracking-widest text-gray-500 mb-6">
-            Active Modules
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xs uppercase tracking-widest text-gray-500">
+              Active Modules
+            </h2>
 
-          <div className="grid grid-cols-2 gap-6">
-            {[
-              { title: "Neural Network Architecture", progress: 74 },
-              { title: "Advanced Micro-Frontend Patterns", progress: 45 },
-            ].map((card, i) => (
-              <div
-                key={i}
-                className="bg-[#111113] border border-white/5 rounded-3xl p-8 hover:border-orange-500/20 transition-colors"
+            {courses.length > 2 && (
+              <button
+                onClick={() => setShowAll(!showAll)}
+                className="text-xs text-orange-400 hover:text-orange-300 transition"
               >
-                <div className="flex justify-between mb-10">
-                  <h3 className="text-xl font-medium text-gray-100 max-w-[220px]">
-                    {card.title}
-                  </h3>
+                {showAll ? "Show less" : "View all"}
+              </button>
+            )}
+          </div>
 
-                  <button className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black transition-colors">
+          {loading && <p className="text-sm text-gray-500">Loading courses…</p>}
+
+          {!loading && courses.length === 0 && (
+            <p className="text-sm text-gray-500">
+              No courses yet. Create your first one.
+            </p>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {visibleCourses.map((course) => (
+              <div
+                key={course._id}
+                className="bg-[#111113] border border-white/5 rounded-3xl p-7
+                           hover:border-orange-500/20 transition-colors"
+              >
+                {/* HEADER */}
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-100 mb-2 line-clamp-2 uppercase">
+                      {course.title}
+                    </h3>
+
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span
+                        className={`px-2 py-1 rounded-full ${difficultyStyle(
+                          course.difficulty
+                        )}`}
+                      >
+                        {course.difficulty || "Unknown"}
+                      </span>
+
+                      <span>
+                        Created{" "}
+                        {new Date(course.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => router.push(`/course/${course._id}`)}
+                    className="w-10 h-10 rounded-full border border-white/10
+                               flex items-center justify-center
+                               hover:bg-orange-500 hover:text-black transition"
+                  >
                     <Play className="w-4 h-4 fill-current" />
                   </button>
                 </div>
 
+                {/* PROGRESS */}
                 <div>
                   <div className="flex justify-between text-xs text-gray-500 mb-2">
-                    <span>Completion</span>
-                    <span className="text-gray-300">{card.progress}%</span>
+                    <span>Progress</span>
+                    <span className="text-gray-300">—</span>
                   </div>
 
                   <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-orange-500"
-                      style={{ width: `${card.progress}%` }}
-                    />
+                    <div className="h-full bg-orange-500 w-[10%]" />
                   </div>
                 </div>
               </div>
@@ -246,13 +426,14 @@ function MainContent() {
         </section>
       </div>
 
-      {/* ✅ SINGLE FLOATING + BUTTON */}
+      {/* FLOATING CREATE BUTTON */}
       <div className="fixed bottom-6 right-[calc(320px+24px)] z-50">
         <OrangePlusButton onClick={() => router.push("/create-course")} />
       </div>
     </main>
   );
 }
+
 
 /* ================= RIGHT PANEL ================= */
 

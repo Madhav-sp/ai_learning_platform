@@ -24,7 +24,7 @@ export default function CourseUI({ course }) {
           <h2 className="text-sm uppercase tracking-widest text-gray-400">
             Course
           </h2>
-          <p className="text-lg font-medium text-gray-200 mt-1">
+          <p className="text-lg font-medium text-gray-200 mt-1 uppercase">
             {course.title}
           </p>
         </div>
