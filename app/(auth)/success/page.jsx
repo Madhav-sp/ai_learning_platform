@@ -9,7 +9,7 @@ export default function AuthSuccessPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push("/");
+      router.push("/dashboard");
     }, 2200);
 
     return () => clearTimeout(timer);

@@ -4,9 +4,7 @@ import CourseForm from "../components/CourseForm";
 
 export default function CreateCoursePage() {
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Create AI Course</h1>
-
+    <div className="min-h-screen bg-[#0b0b0c] flex items-center justify-center">
       <CourseForm />
     </div>
   );

@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import WeatherWidget from "../components/WeatherWidget";
+import OrangePlusButton from "../components/button";
+import { useRouter } from "next/navigation";
+
+/* ================= PAGE ================= */
 
 export default function DashboardPage() {
   return (
@@ -102,9 +106,7 @@ function TopBar() {
         </button>
 
         <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-full px-4 py-1">
-          <div className="flex items-center gap-2 text-sm text-gray-300">
-          <WeatherWidget/>
-          </div>
+          <WeatherWidget />
           <div className="w-7 h-7 rounded-full bg-orange-500 text-black flex items-center justify-center text-xs font-bold">
             <UserButton />
           </div>
@@ -117,8 +119,10 @@ function TopBar() {
 /* ================= MAIN CONTENT ================= */
 
 function MainContent() {
+  const router = useRouter();
+
   return (
-    <main className="flex-1 overflow-y-auto p-8">
+    <main className="flex-1 overflow-y-auto p-8 relative">
       <div className="max-w-5xl mx-auto space-y-12">
         {/* METRICS */}
         <section className="grid grid-cols-3 gap-6">
@@ -163,6 +167,7 @@ function MainContent() {
                   <h3 className="text-xl font-medium text-gray-100 max-w-[220px]">
                     {card.title}
                   </h3>
+
                   <button className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center hover:bg-orange-500 hover:text-black transition-colors">
                     <Play className="w-4 h-4 fill-current" />
                   </button>
@@ -173,6 +178,7 @@ function MainContent() {
                     <span>Completion</span>
                     <span className="text-gray-300">{card.progress}%</span>
                   </div>
+
                   <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-orange-500"
@@ -185,6 +191,11 @@ function MainContent() {
           </div>
         </section>
       </div>
+
+      {/* ✅ SINGLE FLOATING + BUTTON */}
+      <div className="fixed bottom-6 right-[calc(320px+24px)] z-50">
+        <OrangePlusButton onClick={() => router.push("/create-course")} />
+      </div>
     </main>
   );
 }
@@ -194,7 +205,6 @@ function MainContent() {
 function RightPanel() {
   return (
     <aside className="w-80 bg-[#0e0e10] border-l border-white/5 p-8 space-y-10">
-      {/* ACTIVITY */}
       <div>
         <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-4">
           Activity
@@ -213,7 +223,6 @@ function RightPanel() {
         </div>
       </div>
 
-      {/* EVENTS */}
       <div>
         <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-4">
           Upcoming
@@ -240,7 +249,6 @@ function RightPanel() {
         </div>
       </div>
 
-      {/* UPGRADE */}
       <div className="p-6 rounded-3xl bg-[#111113] border border-orange-500/20">
         <p className="text-xs uppercase text-gray-400 mb-2">Pro Plan</p>
         <p className="text-lg font-semibold text-gray-100 mb-4">

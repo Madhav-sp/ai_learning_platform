@@ -21,7 +21,6 @@ export default function CourseForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!user) return alert("Please sign in first");
 
     setLoading(true);
@@ -37,10 +36,7 @@ export default function CourseForm() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Something went wrong");
-      }
+      if (!res.ok) throw new Error(data.error || "Something went wrong");
 
       if (data.success) {
         router.push(`/course/${data.courseId}`);
@@ -53,95 +49,145 @@ export default function CourseForm() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-xl mx-auto space-y-4 bg-white p-6 rounded-lg shadow"
-    >
-      {/* COURSE TITLE */}
-      <input
-        type="text"
-        placeholder="Course Title (e.g. Java Arrays Mastery)"
-        required
-        className="w-full p-2 border rounded"
-        value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
-      />
-
-      {/* DESCRIPTION */}
-      <textarea
-        placeholder="What will students learn from this course?"
-        required
-        className="w-full p-2 border rounded min-h-[100px]"
-        value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-      />
-
-      {/* DIFFICULTY */}
-      <select
-        className="w-full p-2 border rounded"
-        value={form.difficulty}
-        onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
+    <div className="min-h-screen bg-[#0b0b0c] text-gray-300 flex items-center justify-center px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-xl bg-[#111113] border border-white/5 rounded-3xl p-8 space-y-6"
       >
-        <option value="Beginner">Beginner</option>
-        <option value="Intermediate">Intermediate</option>
-        <option value="Advanced">Advanced</option>
-      </select>
+        {/* HEADER */}
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold text-gray-100">
+            Create New Course
+          </h1>
+          <p className="text-sm text-gray-500">
+            Generate a structured, AI-powered learning experience
+          </p>
+        </div>
 
-      {/* CATEGORY (comma separated → array) */}
-      <input
-        type="text"
-        placeholder="Category (e.g. Java, DSA, Backend)"
-        className="w-full p-2 border rounded"
-        onChange={(e) =>
-          setForm({
-            ...form,
-            category: e.target.value
-              .split(",")
-              .map((c) => c.trim())
-              .filter(Boolean),
-          })
-        }
-      />
+        {/* COURSE TITLE */}
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-gray-500">
+            Course Title
+          </label>
+          <input
+            type="text"
+            required
+            placeholder="Java Arrays Mastery"
+            className="w-full bg-[#0b0b0c] border border-white/5 rounded-lg px-4 py-2
+                       text-sm text-gray-200 placeholder:text-gray-600
+                       focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+            value={form.title}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
+          />
+        </div>
 
-      {/* CHAPTER COUNT */}
-      <input
-        type="number"
-        min="1"
-        max="20"
-        required
-        className="w-full p-2 border rounded"
-        placeholder="Number of Chapters (1–20)"
-        value={form.chaptersCount}
-        onChange={(e) =>
-          setForm({
-            ...form,
-            chaptersCount: Number(e.target.value),
-          })
-        }
-      />
+        {/* DESCRIPTION */}
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-gray-500">
+            Description
+          </label>
+          <textarea
+            required
+            placeholder="What will students learn from this course?"
+            className="w-full min-h-[120px] bg-[#0b0b0c] border border-white/5 rounded-lg px-4 py-3
+                       text-sm text-gray-200 placeholder:text-gray-600
+                       focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+        </div>
 
-      {/* INCLUDE VIDEOS */}
-      <label className="flex gap-2 items-center">
-        <input
-          type="checkbox"
-          checked={form.includeVideos}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              includeVideos: e.target.checked,
-            })
-          }
-        />
-        Include video references
-      </label>
+        {/* GRID: DIFFICULTY + CHAPTERS */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* DIFFICULTY */}
+          <div className="space-y-1">
+            <label className="text-xs uppercase tracking-wide text-gray-500">
+              Difficulty
+            </label>
+            <select
+              className="w-full bg-[#0b0b0c] border border-white/5 rounded-lg px-3 py-2
+                         text-sm text-gray-200 focus:outline-none"
+              value={form.difficulty}
+              onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
+            >
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
+          </div>
 
-      {/* SUBMIT */}
-      <button
-        disabled={loading}
-        className="w-full bg-black text-white px-4 py-2 rounded hover:opacity-90 disabled:opacity-50"
-      >
-        {loading ? "Generating Course..." : "Generate Course"}
-      </button>
-    </form>
+          {/* CHAPTER COUNT */}
+          <div className="space-y-1">
+            <label className="text-xs uppercase tracking-wide text-gray-500">
+              Chapters
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              required
+              className="w-full bg-[#0b0b0c] border border-white/5 rounded-lg px-3 py-2
+                         text-sm text-gray-200 focus:outline-none"
+              value={form.chaptersCount}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  chaptersCount: Number(e.target.value),
+                })
+              }
+            />
+          </div>
+        </div>
+
+        {/* CATEGORY */}
+        <div className="space-y-1">
+          <label className="text-xs uppercase tracking-wide text-gray-500">
+            Categories
+          </label>
+          <input
+            type="text"
+            placeholder="Java, DSA, Backend"
+            className="w-full bg-[#0b0b0c] border border-white/5 rounded-lg px-4 py-2
+                       text-sm text-gray-200 placeholder:text-gray-600
+                       focus:outline-none"
+            onChange={(e) =>
+              setForm({
+                ...form,
+                category: e.target.value
+                  .split(",")
+                  .map((c) => c.trim())
+                  .filter(Boolean),
+              })
+            }
+          />
+        </div>
+
+        {/* INCLUDE VIDEOS */}
+        <label className="flex items-center gap-3 text-sm text-gray-400">
+          <input
+            type="checkbox"
+            checked={form.includeVideos}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                includeVideos: e.target.checked,
+              })
+            }
+            className="accent-orange-500"
+          />
+          Include video references
+        </label>
+
+        {/* SUBMIT */}
+        <button
+          disabled={loading}
+          className="w-full mt-4 bg-orange-500 text-black py-2.5 rounded-lg
+                     text-sm font-semibold hover:opacity-90
+                     disabled:opacity-50 transition"
+        >
+          {loading ? "Generating Course…" : "Generate Course"}
+        </button>
+      </form>
+    </div>
   );
 }
