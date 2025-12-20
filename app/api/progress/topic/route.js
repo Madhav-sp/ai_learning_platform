@@ -8,7 +8,7 @@ export async function POST(req) {
   await connectDB();
 
   const { userId } = getAuth(req);
-  console.log("AUTH USER:", userId);
+//   console.log("AUTH USER:", userId);
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

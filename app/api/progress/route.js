@@ -7,7 +7,7 @@ export async function GET(req) {
   await connectDB();
 
   const { userId } = getAuth(req);
-  console.log("AUTH USER (GET):", userId);
+  // console.log("AUTH USER (GET):", userId);
 
   if (!userId) {
     return NextResponse.json({});

@@ -166,30 +166,35 @@ export default function CourseUI({ course }) {
               setProgress((prev) => {
                 if (!prev) return prev;
 
-                const exists = prev.completedTopics.some(
+                const completedTopics = Array.isArray(prev.completedTopics)
+                  ? prev.completedTopics
+                  : [];
+
+                const exists = completedTopics.some(
                   (t) => t.chapterIndex === ci && t.topicIndex === ti
                 );
+
                 if (exists) return prev;
 
-                const updated = {
-                  ...prev,
-                  completedTopics: [
-                    ...prev.completedTopics,
-                    { chapterIndex: ci, topicIndex: ti },
-                  ],
-                };
+                const updatedCompleted = [
+                  ...completedTopics,
+                  { chapterIndex: ci, topicIndex: ti },
+                ];
 
                 const totalTopics = course.chapters.reduce(
-                  (s, ch) => s + ch.topics.length,
+                  (sum, ch) => sum + ch.topics.length,
                   0
                 );
 
-                updated.progressPercent = Math.round(
-                  (updated.completedTopics.length / totalTopics) * 100
-                );
-
-                return updated;
+                return {
+                  ...prev,
+                  completedTopics: updatedCompleted,
+                  progressPercent: Math.round(
+                    (updatedCompleted.length / totalTopics) * 100
+                  ),
+                };
               });
+
             }}
             onNext={() => {
               const currentChapter = course.chapters[activeChapterIndex];
