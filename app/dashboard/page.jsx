@@ -289,14 +289,24 @@ function MainContent() {
   useEffect(() => {
     if (!user) return;
 
+    const cached = sessionStorage.getItem("courses");
+
+    if (cached) {
+      setCourses(JSON.parse(cached));
+      setLoading(false);
+      return;
+    }
+
     fetch("/api/course")
       .then((res) => res.json())
       .then((data) => {
         setCourses(data || []);
+        sessionStorage.setItem("courses", JSON.stringify(data || []));
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [user]);
+
 
   const visibleCourses = showAll ? courses : courses.slice(0, 2);
 
@@ -322,7 +332,7 @@ function MainContent() {
             { label: "Current Streak", value: "14", unit: "Days" },
             { label: "Focus Hours", value: "124.5", unit: "Hrs" },
             {
-              label: "Completed",
+              label: "Total Courses",
               value: courses.length,
               unit: "Courses",
             },
@@ -354,7 +364,7 @@ function MainContent() {
             {courses.length > 2 && (
               <button
                 onClick={() => setShowAll(!showAll)}
-                className="text-xs text-orange-400 hover:text-orange-300 transition"
+                className="text-xs text-orange-400 hover:text-orange-300 transition cursor-pointer"
               >
                 {showAll ? "Show less" : "View all"}
               </button>
@@ -403,7 +413,7 @@ function MainContent() {
                     onClick={() => router.push(`/course/${course._id}`)}
                     className="w-10 h-10 rounded-full border border-white/10
                                flex items-center justify-center
-                               hover:bg-orange-500 hover:text-black transition"
+                               hover:bg-orange-500 hover:text-black transition cursor-pointer"
                   >
                     <Play className="w-4 h-4 fill-current" />
                   </button>
@@ -427,8 +437,11 @@ function MainContent() {
       </div>
 
       {/* FLOATING CREATE BUTTON */}
-      <div className="fixed bottom-6 right-[calc(320px+24px)] z-50">
-        <OrangePlusButton onClick={() => router.push("/create-course")} />
+      <div className="fixed bottom-6 right-[calc(320px+24px)] z-50 ">
+        <OrangePlusButton
+          className="cursor-pointer"
+          onClick={() => router.push("/create-course")}
+        />
       </div>
     </main>
   );
