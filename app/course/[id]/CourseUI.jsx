@@ -43,7 +43,9 @@ export default function CourseUI({ course }) {
         {/* Header */}
         <div className="p-6 border-b border-white/10">
           <div className="text-xl text-gray-500 mb-1">Course</div>
-          <div className="text-lg font-semibold text-white capitalize">{course.title}</div>
+          <div className="text-lg font-semibold text-white capitalize">
+            {course.title}
+          </div>
 
           {/* Progress bar */}
           {progress && (
@@ -189,6 +191,18 @@ export default function CourseUI({ course }) {
                 return updated;
               });
             }}
+            onNext={() => {
+              const currentChapter = course.chapters[activeChapterIndex];
+
+              if (activeTopicIndex < currentChapter.topics.length - 1) {
+                setActiveTopicIndex(activeTopicIndex + 1);
+              } else if (activeChapterIndex < course.chapters.length - 1) {
+                setActiveChapterIndex(activeChapterIndex + 1);
+                setActiveTopicIndex(0);
+              } else {
+                alert("🎉 You have completed the course!");
+              }
+            }}
           />
         )}
 
@@ -225,10 +239,11 @@ function ArticleView({
   activeChapterIndex,
   activeTopicIndex,
   onOptimisticComplete,
+  onNext,
 }) {
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const markTopicCompleted = async () => {
+  const markCompleted = async () => {
     onOptimisticComplete(activeChapterIndex, activeTopicIndex);
 
     setIsCompleting(true);
@@ -247,6 +262,11 @@ function ArticleView({
     } finally {
       setIsCompleting(false);
     }
+  };
+
+  const handleNext = async () => {
+    await markCompleted();
+    onNext();
   };
 
   return (
@@ -297,13 +317,24 @@ function ArticleView({
         }
       })}
 
-      <button
-        onClick={markTopicCompleted}
-        disabled={isCompleting}
-        className="mt-8 px-6 py-3 rounded-lg bg-orange-500 text-black text-sm font-medium hover:bg-orange-600 disabled:opacity-50"
-      >
-        {isCompleting ? "Marking..." : "Mark as Completed ✓"}
-      </button>
+      {/* ACTION BUTTONS */}
+      <div className="mt-10 flex items-center justify-between">
+        <button
+          onClick={markCompleted}
+          disabled={isCompleting}
+          className="px-6 py-3 rounded-lg bg-white/10 text-gray-200 text-sm hover:bg-white/20 disabled:opacity-50"
+        >
+          {isCompleting ? "Saving..." : "Mark as Completed ✓"}
+        </button>
+
+        <button
+          onClick={handleNext}
+          disabled={isCompleting}
+          className="px-6 py-2 rounded-lg bg-orange-500 text-black text-sm font-medium hover:bg-orange-600 disabled:opacity-50 cursor-pointer"
+        >
+          Next →
+        </button>
+      </div>
     </div>
   );
 }
