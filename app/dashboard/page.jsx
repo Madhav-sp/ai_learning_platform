@@ -180,25 +180,46 @@ function MainContent() {
   const [progressData, setProgressData] = useState({});
 
   // Fetch courses
-  useEffect(() => {
-    if (!user) return;
+useEffect(() => {
+  if (!user) return;
 
-    const cached = sessionStorage.getItem("courses");
+  const cached = sessionStorage.getItem("courses");
 
-    if (cached) {
-      setCourses(JSON.parse(cached));
+  if (cached) {
+    const parsed = JSON.parse(cached);
+
+    // ✅ validate cached data (must contain real topics)
+    const hasValidTopics =
+      Array.isArray(parsed) &&
+      parsed.some(
+        (course) =>
+          Array.isArray(course.chapters) &&
+          course.chapters.some(
+            (ch) => Array.isArray(ch.topics) && ch.topics.length > 0
+          )
+      );
+
+    if (hasValidTopics) {
+      setCourses(parsed);
       setLoading(false);
+      return;
     } else {
-      fetch("/api/course")
-        .then((res) => res.json())
-        .then((data) => {
-          setCourses(data || []);
-          sessionStorage.setItem("courses", JSON.stringify(data || []));
-          setLoading(false);
-        })
-        .catch(() => setLoading(false));
+      // ❌ stale cache → remove it
+      sessionStorage.removeItem("courses");
     }
-  }, [user]);
+  }
+
+  // 🔄 fetch fresh data if no cache or stale cache
+  fetch("/api/course")
+    .then((res) => res.json())
+    .then((data) => {
+      setCourses(data || []);
+      sessionStorage.setItem("courses", JSON.stringify(data || []));
+      setLoading(false);
+    })
+    .catch(() => setLoading(false));
+}, [user]);
+
 
   // Fetch progress for all courses
   useEffect(() => {
@@ -213,11 +234,15 @@ function MainContent() {
           const data = await res.json();
 
           if (data) {
-            const totalTopics = course.chapters.reduce(
-              (sum, ch) => sum + ch.topics.length,
-              0
+            const totalTopics = course.totalTopics || 0;
+
+
+
+            const completedTopics = Math.min(
+              data?.completedTopics?.length || 0,
+              totalTopics
             );
-            const completedTopics = data.completedTopics?.length || 0;
+
             const percentage =
               totalTopics > 0
                 ? Math.round((completedTopics / totalTopics) * 100)
@@ -387,7 +412,7 @@ function MainContent() {
                   </div>
 
                   {/* PROGRESS */}
-                  <div>
+                  {/* <div>
                     <div className="flex justify-between text-xs text-gray-500 mb-2">
                       <span>Progress</span>
                       <span className="text-gray-300">
@@ -402,7 +427,32 @@ function MainContent() {
                         style={{ width: `${progress.percentage}%` }}
                       />
                     </div>
-                  </div>
+                  </div> */}
+                  {(() => {
+                    const completed = progress?.completedTopics ?? 0;
+                    const total = progress?.totalTopics ?? 0;
+                    const percentage =
+                      total > 0 ? Math.round((completed / total) * 100) : 0;
+
+
+                    return (
+                      <div>
+                        <div className="flex justify-between text-xs text-gray-500 mb-2">
+                          <span>Progress</span>
+                          <span className="text-gray-300">
+                            {completed}/{total} topics • {percentage}%
+                          </span>
+                        </div>
+
+                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-orange-500 transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}
