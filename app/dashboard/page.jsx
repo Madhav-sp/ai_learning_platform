@@ -40,7 +40,6 @@ export default function DashboardPage() {
 
 /* ================= SIDEBAR ================= */
 
-
 function Sidebar() {
   const { signOut } = useClerk();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -132,7 +131,6 @@ function Sidebar() {
   );
 }
 
-
 /* ================= TOP BAR ================= */
 
 function TopBar() {
@@ -172,112 +170,6 @@ function TopBar() {
 
 /* ================= MAIN CONTENT ================= */
 
-// function MainContent() {
-//   const router = useRouter();
-
-//   const [courses, setCourses] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   const { user } = useUser();
-
-//   useEffect(() => {
-//     if (!user) return;
-
-//     fetch(`/api/course`)
-//       .then((res) => res.json())
-//       .then(setCourses)
-//       .then(() => setLoading(false))
-//   }, [user]);
-//   return (
-//     <main className="flex-1 overflow-y-auto p-8 relative">
-//       <div className="max-w-5xl mx-auto space-y-12">
-//         {/* METRICS (UNCHANGED) */}
-//         <section className="grid grid-cols-3 gap-6">
-//           {[
-//             { label: "Current Streak", value: "14", unit: "Days" },
-//             { label: "Focus Hours", value: "124.5", unit: "Hrs" },
-//             { label: "Completed", value: "12", unit: "Projects" },
-//           ].map((item, i) => (
-//             <div
-//               key={i}
-//               className="bg-[#111113] border border-white/5 rounded-2xl p-6"
-//             >
-//               <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
-//                 {item.label}
-//               </p>
-//               <div className="flex items-end gap-2">
-//                 <span className="text-3xl font-medium text-gray-100">
-//                   {item.value}
-//                 </span>
-//                 <span className="text-sm text-gray-500">{item.unit}</span>
-//               </div>
-//             </div>
-//           ))}
-//         </section>
-
-//         {/* ACTIVE MODULES (REAL DATA) */}
-//         <section>
-//           <h2 className="text-xs uppercase tracking-widest text-gray-500 mb-6">
-//             Active Modules
-//           </h2>
-
-//           {/* LOADING STATE */}
-//           {loading && <p className="text-sm text-gray-500">Loading courses…</p>}
-
-//           {/* EMPTY STATE */}
-//           {!loading && courses.length === 0 && (
-//             <p className="text-sm text-gray-500">
-//               No courses yet. Create your first one.
-//             </p>
-//           )}
-
-//           {/* COURSES GRID */}
-//           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-//             {courses.map((course) => (
-//               <div
-//                 key={course._id}
-//                 className="bg-[#111113] border border-white/5 rounded-3xl p-8
-//                            hover:border-orange-500/20 transition-colors"
-//               >
-//                 <div className="flex justify-between mb-10">
-//                   <h3 className="text-xl font-medium text-gray-100 max-w-[220px]">
-//                     {course.title}
-//                   </h3>
-
-//                   <button
-//                     onClick={() => router.push(`/course/${course._id}`)}
-//                     className="w-11 h-11 rounded-full border border-white/10
-//                                flex items-center justify-center
-//                                hover:bg-orange-500 hover:text-black transition-colors"
-//                   >
-//                     <Play className="w-4 h-4 fill-current" />
-//                   </button>
-//                 </div>
-
-//                 {/* TEMP PROGRESS (can be replaced later) */}
-//                 <div>
-//                   <div className="flex justify-between text-xs text-gray-500 mb-2">
-//                     <span>Progress</span>
-//                     <span className="text-gray-300">—</span>
-//                   </div>
-
-//                   <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-//                     <div className="h-full bg-orange-500 w-[10%]" />
-//                   </div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-//         </section>
-//       </div>
-
-//       {/* FLOATING CREATE BUTTON */}
-//       <div className="fixed bottom-6 right-[calc(320px+24px)] z-50">
-//         <OrangePlusButton onClick={() => router.push("/create-course")} />
-//       </div>
-//     </main>
-//   );
-// }
 function MainContent() {
   const router = useRouter();
   const { user } = useUser();
@@ -285,7 +177,9 @@ function MainContent() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
+  const [progressData, setProgressData] = useState({});
 
+  // Fetch courses
   useEffect(() => {
     if (!user) return;
 
@@ -294,19 +188,57 @@ function MainContent() {
     if (cached) {
       setCourses(JSON.parse(cached));
       setLoading(false);
-      return;
+    } else {
+      fetch("/api/course")
+        .then((res) => res.json())
+        .then((data) => {
+          setCourses(data || []);
+          sessionStorage.setItem("courses", JSON.stringify(data || []));
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     }
-
-    fetch("/api/course")
-      .then((res) => res.json())
-      .then((data) => {
-        setCourses(data || []);
-        sessionStorage.setItem("courses", JSON.stringify(data || []));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
   }, [user]);
 
+  // Fetch progress for all courses
+  useEffect(() => {
+    if (!user || courses.length === 0) return;
+
+    const fetchAllProgress = async () => {
+      const progressMap = {};
+
+      for (const course of courses) {
+        try {
+          const res = await fetch(`/api/progress?courseId=${course._id}`);
+          const data = await res.json();
+
+          if (data) {
+            const totalTopics = course.chapters.reduce(
+              (sum, ch) => sum + ch.topics.length,
+              0
+            );
+            const completedTopics = data.completedTopics?.length || 0;
+            const percentage =
+              totalTopics > 0
+                ? Math.round((completedTopics / totalTopics) * 100)
+                : 0;
+
+            progressMap[course._id] = {
+              percentage,
+              completedTopics,
+              totalTopics,
+            };
+          }
+        } catch (error) {
+          console.error(`Failed to fetch progress for ${course._id}:`, error);
+        }
+      }
+
+      setProgressData(progressMap);
+    };
+
+    fetchAllProgress();
+  }, [user, courses]);
 
   const visibleCourses = showAll ? courses : courses.slice(0, 2);
 
@@ -323,35 +255,61 @@ function MainContent() {
     }
   };
 
+  // Calculate total stats
+  const totalCompleted = Object.values(progressData).reduce(
+    (sum, p) => sum + p.completedTopics,
+    0
+  );
+  const avgProgress =
+    courses.length > 0
+      ? Math.round(
+          Object.values(progressData).reduce(
+            (sum, p) => sum + p.percentage,
+            0
+          ) / courses.length
+        )
+      : 0;
+
   return (
     <main className="flex-1 overflow-y-auto p-8 relative custom-scroll">
       <div className="max-w-5xl mx-auto space-y-12">
         {/* METRICS */}
         <section className="grid grid-cols-3 gap-6">
-          {[
-            { label: "Current Streak", value: "14", unit: "Days" },
-            { label: "Focus Hours", value: "124.5", unit: "Hrs" },
-            {
-              label: "Total Courses",
-              value: courses.length,
-              unit: "Courses",
-            },
-          ].map((item, i) => (
-            <div
-              key={i}
-              className="bg-[#111113] border border-white/5 rounded-2xl p-6"
-            >
-              <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
-                {item.label}
-              </p>
-              <div className="flex items-end gap-2">
-                <span className="text-3xl font-medium text-gray-100">
-                  {item.value}
-                </span>
-                <span className="text-sm text-gray-500">{item.unit}</span>
-              </div>
+          <div className="bg-[#111113] border border-white/5 rounded-2xl p-6">
+            <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+              Average Progress
+            </p>
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-medium text-gray-100">
+                {avgProgress}
+              </span>
+              <span className="text-sm text-gray-500">%</span>
             </div>
-          ))}
+          </div>
+
+          <div className="bg-[#111113] border border-white/5 rounded-2xl p-6">
+            <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+              Topics Completed
+            </p>
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-medium text-gray-100">
+                {totalCompleted}
+              </span>
+              <span className="text-sm text-gray-500">Topics</span>
+            </div>
+          </div>
+
+          <div className="bg-[#111113] border border-white/5 rounded-2xl p-6">
+            <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+              Total Courses
+            </p>
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-medium text-gray-100">
+                {courses.length}
+              </span>
+              <span className="text-sm text-gray-500">Courses</span>
+            </div>
+          </div>
         </section>
 
         {/* ACTIVE MODULES */}
@@ -374,70 +332,86 @@ function MainContent() {
           {loading && <p className="text-sm text-gray-500">Loading courses…</p>}
 
           {!loading && courses.length === 0 && (
-            <p className="text-sm text-gray-500">
-              No courses yet. Create your first one.
-            </p>
+            <div className="text-center py-12">
+              <p className="text-sm text-gray-500 mb-4">
+                No courses yet. Create your first one to get started.
+              </p>
+            </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {visibleCourses.map((course) => (
-              <div
-                key={course._id}
-                className="bg-[#111113] border border-white/5 rounded-3xl p-7
+            {visibleCourses.map((course) => {
+              const progress = progressData[course._id] || {
+                percentage: 0,
+                completedTopics: 0,
+                totalTopics: 0,
+              };
+
+              return (
+                <div
+                  key={course._id}
+                  className="bg-[#111113] border border-white/5 rounded-3xl p-7
                            hover:border-orange-500/20 transition-colors"
-              >
-                {/* HEADER */}
-                <div className="flex justify-between items-start mb-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-100 mb-2 line-clamp-2 uppercase">
-                      {course.title}
-                    </h3>
+                >
+                  {/* HEADER */}
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-100 mb-2 line-clamp-2 uppercase">
+                        {course.title}
+                      </h3>
 
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span
-                        className={`px-2 py-1 rounded-full ${difficultyStyle(
-                          course.difficulty
-                        )}`}
-                      >
-                        {course.difficulty || "Unknown"}
-                      </span>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <span
+                          className={`px-2 py-1 rounded-full ${difficultyStyle(
+                            course.difficulty
+                          )}`}
+                        >
+                          {course.difficulty || "Unknown"}
+                        </span>
 
-                      <span>
-                        Created{" "}
-                        {new Date(course.createdAt).toLocaleDateString()}
-                      </span>
+                        <span>
+                          Created{" "}
+                          {new Date(course.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <button
-                    onClick={() => router.push(`/course/${course._id}`)}
-                    className="w-10 h-10 rounded-full border border-white/10
+                    <button
+                      onClick={() => router.push(`/course/${course._id}`)}
+                      className="w-10 h-10 rounded-full border border-white/10
                                flex items-center justify-center
                                hover:bg-orange-500 hover:text-black transition cursor-pointer"
-                  >
-                    <Play className="w-4 h-4 fill-current" />
-                  </button>
-                </div>
-
-                {/* PROGRESS */}
-                <div>
-                  <div className="flex justify-between text-xs text-gray-500 mb-2">
-                    <span>Progress</span>
-                    <span className="text-gray-300">—</span>
+                    >
+                      <Play className="w-4 h-4 fill-current" />
+                    </button>
                   </div>
 
-                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-orange-500 w-[10%]" />
+                  {/* PROGRESS */}
+                  <div>
+                    <div className="flex justify-between text-xs text-gray-500 mb-2">
+                      <span>Progress</span>
+                      <span className="text-gray-300">
+                        {progress.completedTopics}/{progress.totalTopics} topics
+                        • {progress.percentage}%
+                      </span>
+                    </div>
+
+                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-orange-500 transition-all duration-500"
+                        style={{ width: `${progress.percentage}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>
 
       {/* FLOATING CREATE BUTTON */}
-      <div className="fixed bottom-6 right-[calc(320px+24px)] z-50 ">
+      <div className="fixed bottom-6 right-[calc(320px+24px)] z-50">
         <OrangePlusButton
           className="cursor-pointer"
           onClick={() => router.push("/create-course")}
@@ -446,7 +420,6 @@ function MainContent() {
     </main>
   );
 }
-
 
 /* ================= RIGHT PANEL ================= */
 

@@ -3,14 +3,20 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/api/generate-course(.*)",
-  "/api/course(.*)",
+
+  // course browsing
   "/course(.*)",
+  "/api/course(.*)",
+  "/api/generate-course(.*)",
+
+  // ✅ allow reading progress (resume feature)
+  "/api/progress(.*)",
+  "/api/progress/topic(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
-    await auth.protect(); // protect everything except public routes
+    await auth.protect();
   }
 });
 
