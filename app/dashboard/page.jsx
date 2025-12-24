@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
 import {
   Home,
   BookOpen,
@@ -17,8 +19,7 @@ import {
 import { useClerk, UserButton, useUser } from "@clerk/nextjs";
 import WeatherWidget from "../components/WeatherWidget";
 import OrangePlusButton from "../components/button";
-import { useRouter } from "next/navigation";
-
+// import { useRouter } from "next/navigation";
 /* ================= PAGE ================= */
 
 export default function DashboardPage() {
@@ -43,13 +44,14 @@ export default function DashboardPage() {
 function Sidebar() {
   const { signOut } = useClerk();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const router = useRouter();
 
   const navItems = [
-    { icon: Home, label: "Home", active: true },
-    { icon: BookOpen, label: "Library" },
-    { icon: BarChart3, label: "Analytics" },
-    { icon: Target, label: "Goals" },
-    { icon: Settings, label: "Settings" },
+    { icon: Home, label: "Home", active: true, address: "/" },
+    { icon: BookOpen, label: "Library", address: "/notebook" },
+    { icon: BarChart3, label: "Analytics", address: "/analytics" },
+    { icon: Target, label: "Goals", address: "/goals" },
+    { icon: Settings, label: "Settings", address: "/settings" },
   ];
 
   return (
@@ -73,6 +75,7 @@ function Sidebar() {
                     : "text-gray-500 hover:text-gray-200 hover:bg-white/5"
                 }`}
                 title={item.label}
+                onClick={() => router.push(item.address)}
               >
                 <item.icon className="w-5 h-5" />
               </button>
@@ -180,46 +183,45 @@ function MainContent() {
   const [progressData, setProgressData] = useState({});
 
   // Fetch courses
-useEffect(() => {
-  if (!user) return;
+  useEffect(() => {
+    if (!user) return;
 
-  const cached = sessionStorage.getItem("courses");
+    const cached = sessionStorage.getItem("courses");
 
-  if (cached) {
-    const parsed = JSON.parse(cached);
+    if (cached) {
+      const parsed = JSON.parse(cached);
 
-    // ✅ validate cached data (must contain real topics)
-    const hasValidTopics =
-      Array.isArray(parsed) &&
-      parsed.some(
-        (course) =>
-          Array.isArray(course.chapters) &&
-          course.chapters.some(
-            (ch) => Array.isArray(ch.topics) && ch.topics.length > 0
-          )
-      );
+      // ✅ validate cached data (must contain real topics)
+      const hasValidTopics =
+        Array.isArray(parsed) &&
+        parsed.some(
+          (course) =>
+            Array.isArray(course.chapters) &&
+            course.chapters.some(
+              (ch) => Array.isArray(ch.topics) && ch.topics.length > 0
+            )
+        );
 
-    if (hasValidTopics) {
-      setCourses(parsed);
-      setLoading(false);
-      return;
-    } else {
-      // ❌ stale cache → remove it
-      sessionStorage.removeItem("courses");
+      if (hasValidTopics) {
+        setCourses(parsed);
+        setLoading(false);
+        return;
+      } else {
+        // ❌ stale cache → remove it
+        sessionStorage.removeItem("courses");
+      }
     }
-  }
 
-  // 🔄 fetch fresh data if no cache or stale cache
-  fetch("/api/course")
-    .then((res) => res.json())
-    .then((data) => {
-      setCourses(data || []);
-      sessionStorage.setItem("courses", JSON.stringify(data || []));
-      setLoading(false);
-    })
-    .catch(() => setLoading(false));
-}, [user]);
-
+    // 🔄 fetch fresh data if no cache or stale cache
+    fetch("/api/course")
+      .then((res) => res.json())
+      .then((data) => {
+        setCourses(data || []);
+        sessionStorage.setItem("courses", JSON.stringify(data || []));
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [user]);
 
   // Fetch progress for all courses
   useEffect(() => {
@@ -235,8 +237,6 @@ useEffect(() => {
 
           if (data) {
             const totalTopics = course.totalTopics || 0;
-
-
 
             const completedTopics = Math.min(
               data?.completedTopics?.length || 0,
@@ -433,7 +433,6 @@ useEffect(() => {
                     const total = progress?.totalTopics ?? 0;
                     const percentage =
                       total > 0 ? Math.round((completed / total) * 100) : 0;
-
 
                     return (
                       <div>
