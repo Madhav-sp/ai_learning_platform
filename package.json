@@ -12,6 +12,7 @@
     "@clerk/nextjs": "^6.36.2",
     "@clerk/themes": "^2.4.44",
     "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.2.3",
     "groq-sdk": "^0.37.0",
     "lucide-react": "^0.561.0",
     "mongoose": "^9.0.1",

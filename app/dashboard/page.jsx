@@ -23,6 +23,7 @@ import OrangePlusButton from "../components/button";
 /* ================= PAGE ================= */
 
 export default function DashboardPage() {
+  
   return (
     <div className="flex h-screen bg-[#0b0b0c] text-gray-300 font-sans">
       <Sidebar />
@@ -473,6 +474,45 @@ function MainContent() {
 /* ================= RIGHT PANEL ================= */
 
 function RightPanel() {
+  const { user } = useUser();
+  const [upcoming, setUpcoming] = useState([]);
+ useEffect(() => {
+   if (!user) return;
+
+   fetch("/api/goals", {
+     headers: {
+       "x-user-id": user.id, // ✅ THIS WAS MISSING
+     },
+   })
+     .then((res) => res.json())
+     .then((data) => {
+       const upcomingTasks = (data || [])
+         .filter((t) => !t.completed)
+         .slice(0, 2)
+         .map((t) => ({
+           label: t.text,
+           time: "Today",
+         }));
+
+       if (upcomingTasks.length > 0) {
+         setUpcoming(upcomingTasks);
+       } else {
+         setUpcoming([
+           { label: "DSA Practice", time: "Today" },
+           { label: "Java Revision", time: "Today" },
+         ]);
+       }
+     })
+     .catch(() => {
+       setUpcoming([
+         { label: "DSA Practice", time: "Today" },
+         { label: "Java Revision", time: "Today" },
+       ]);
+     });
+ }, [user]);
+
+
+
   return (
     <aside className="w-80 bg-[#0e0e10] border-l border-white/5 p-8 space-y-10">
       <div>
@@ -499,10 +539,7 @@ function RightPanel() {
         </h3>
 
         <div className="space-y-3">
-          {[
-            { label: "Performance Review", time: "14:00" },
-            { label: "Algorithm Contest", time: "19:00" },
-          ].map((e, i) => (
+          {upcoming.map((e, i) => (
             <div
               key={i}
               className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl"
