@@ -225,6 +225,8 @@ export default function GoalsPage() {
   );
 }
 
+
+
 /* ================= ROADMAP STEP ================= */
 
 function RoadmapStep({ status, title, desc, icon }) {
