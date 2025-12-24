@@ -457,6 +457,29 @@ function MainContent() {
               );
             })}
           </div>
+          <div className="relative bg-[#111113] mt-5 border border-orange-500/30 rounded-3xl p-8 flex flex-col justify-between">
+            {/* 🔥 Badge */}
+            <span className="absolute -top-3 left-6 bg-orange-500 text-black text-xs font-semibold px-3 py-1 rounded-4xl shadow">
+              NEW
+            </span>
+
+            <div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                Try Notebook LM
+              </h3>
+              <p className="text-sm text-gray-400">
+                Upload PDFs, generate summaries, notes, flashcards and chat with
+                your documents.
+              </p>
+            </div>
+
+            <button
+              onClick={() => router.push("/notebook")}
+              className="mt-6 bg-orange-500 text-black px-6 py-2 rounded-lg text-sm font-semibold w-fit hover:opacity-90"
+            >
+              Try Now
+            </button>
+          </div>
         </section>
       </div>
 

@@ -122,6 +122,17 @@ function AnalyticsContent() {
   useEffect(() => {
     if (!user) return;
 
+    const CACHE_KEY = "analytics_cache_v1";
+
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      setStats(parsed.stats);
+      setWeeklyData(parsed.weeklyData);
+      setSkillData(parsed.skillData);
+      return;
+    }
+
     const loadAnalytics = async () => {
       const courses = await fetch("/api/course").then((r) => r.json());
       const goals = await fetch("/api/goals", {
@@ -163,22 +174,31 @@ function AnalyticsContent() {
         });
       }
 
-      setStats({
+      const computedStats = {
         totalCourses: courses.length,
         completedTopics: completedTopicsCount,
         avgProgress:
           courses.length > 0 ? Math.round(progressSum / courses.length) : 0,
         activeGoals: goals.filter((g) => !g.completed).length,
-      });
-
-      setWeeklyData(dailyCounts);
+      };
 
       const totalSkills = Object.values(skillMap).reduce((a, b) => a + b, 0);
-      setSkillData(
-        Object.entries(skillMap).map(([label, count]) => ({
-          label,
-          value: Math.round((count / totalSkills) * 100),
-        }))
+      const computedSkills = Object.entries(skillMap).map(([label, count]) => ({
+        label,
+        value: Math.round((count / totalSkills) * 100),
+      }));
+
+      setStats(computedStats);
+      setWeeklyData(dailyCounts);
+      setSkillData(computedSkills);
+
+      sessionStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          stats: computedStats,
+          weeklyData: dailyCounts,
+          skillData: computedSkills,
+        })
       );
     };
 
@@ -187,7 +207,6 @@ function AnalyticsContent() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-10">
-      {/* METRICS */}
       <section className="grid grid-cols-1 sm:grid-cols-4 gap-6">
         <MetricCard
           title="Total Courses"
@@ -211,13 +230,11 @@ function AnalyticsContent() {
         />
       </section>
 
-      {/* GRAPHS */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <WeeklyProgressChart data={weeklyData} />
         <SkillDistribution skills={skillData} />
       </section>
 
-      {/* INSIGHT */}
       <section className="bg-[#111113] border border-white/5 rounded-3xl p-8">
         <h3 className="text-xs uppercase tracking-widest text-gray-500 mb-4">
           Insight
@@ -263,7 +280,7 @@ function WeeklyProgressChart({ data }) {
         {data.map((v, i) => (
           <div key={i} className="flex-1 flex flex-col items-center gap-2">
             <div
-              className="w-full bg-orange-500 rounded-md transition-all"
+              className="w-full bg-orange-500 rounded-md"
               style={{ height: `${(v / max) * 100}%` }}
             />
             <span className="text-[10px] text-gray-500">
@@ -292,7 +309,7 @@ function SkillDistribution({ skills }) {
             </div>
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-orange-500 transition-all"
+                className="h-full bg-orange-500"
                 style={{ width: `${s.value}%` }}
               />
             </div>
