@@ -34,7 +34,7 @@
 ```
 +-----------------------------------------------------------------------------+
 |                                FRONTEND LAYER                               |
-|   Next.js 16 (App Router) + Tailwind CSS + Lucide Icons + React Markdown    |
+|   Next.js  (App Router) + Tailwind CSS + Lucide Icons + React Markdown    |
 +--------------------------------------+--------------------------------------+
                                        |
                                        v
